@@ -18,7 +18,7 @@ Added BIP39 support for:
 ## Standalone offline version
 
 Download `bip39-standalone.html` from
-[the releases](https://github.com/PavlosTze/bip39/releases).
+[the releases](https://github.com/Coinomi/bip39-coinomi/releases).
 
 Open the file in a browser by double clicking it.
 
