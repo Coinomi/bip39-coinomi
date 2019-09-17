@@ -1,5 +1,0 @@
-#!/bin/bash
-
-echo -n "$1 = '"
-xxd -p "$2" | tr -d '\n'
-echo "';"

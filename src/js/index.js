@@ -509,9 +509,7 @@
 		if(networks[DOM.network.val()].name == "SMART - SmartCash"){
 			var smartcash = require('smartcashjs-lib');
 			bip32RootKey = smartcash.HDNode.fromSeedHex(seed);
-		} else if(networks[DOM.network.val()].name == "GRS - Groestlcoin") {
-			bip32RootKey = grsUtil.bitcoin.HDNode.fromSeedHexGRS(seed, network);
-    } else {
+		} else {
 			bip32RootKey = bitcoinjs.bitcoin.HDNode.fromSeedHex(seed, network);
 		}
     }
@@ -521,9 +519,7 @@
 		if(networks[DOM.network.val()].name == "SMART - SmartCash"){
 			var smartcash = require('smartcashjs-lib');
 			bip32RootKey = smartcash.HDNode.fromBase58(rootKeyBase58);
-		} else if(networks[DOM.network.val()].name == "GRS - Groestlcoin") {
-			bip32RootKey = grsUtil.bitcoin.HDNode.fromBase58GRS(rootKeyBase58, n);
-	    } /*else if(networks[DOM.network.val()].name == "DCR - Decred") {
+		} /*else if(networks[DOM.network.val()].name == "DCR - Decred") {
 			bip32RootKey = grsUtil.bitcoin.HDNode.fromBase58(rootKeyBase58, bitcoinjs.bitcoin.networks.decred);
 	    } */else {
 			// try parsing with various segwit network params since this extended
@@ -975,30 +971,16 @@
 							return;
 						}
 						if (isP2wpkh) {
-							if(networks[DOM.network.val()].name == "GRS - Groestlcoin") {
-								var keyhash = grsUtil.bitcoin.crypto.hash160(key.getPublicKeyBuffer());
-								var scriptpubkey = grsUtil.bitcoin.script.witnessPubKeyHash.output.encode(keyhash);
-								address = grsUtil.bitcoin.address.fromOutputScript(scriptpubkey, network)
-							} else {
-								var keyhash = bitcoinjs.bitcoin.crypto.hash160(key.getPublicKeyBuffer());
-								var scriptpubkey = bitcoinjs.bitcoin.script.witnessPubKeyHash.output.encode(keyhash);
-								address = bitcoinjs.bitcoin.address.fromOutputScript(scriptpubkey, network)
-							}
+							var keyhash = bitcoinjs.bitcoin.crypto.hash160(key.getPublicKeyBuffer());
+							var scriptpubkey = bitcoinjs.bitcoin.script.witnessPubKeyHash.output.encode(keyhash);
+							address = bitcoinjs.bitcoin.address.fromOutputScript(scriptpubkey, network)
 						}
 						else if (isP2wpkhInP2sh) {
-							if(networks[DOM.network.val()].name == "GRS - Groestlcoin") {
-								var keyhash = grsUtil.bitcoin.crypto.hash160(key.getPublicKeyBuffer());
-								var scriptsig = grsUtil.bitcoin.script.witnessPubKeyHash.output.encode(keyhash);
-								var addressbytes = grsUtil.bitcoin.crypto.hash160(scriptsig);
-								var scriptpubkey = grsUtil.bitcoin.script.scriptHash.output.encode(addressbytes);
-								address = grsUtil.bitcoin.address.fromOutputScript(scriptpubkey, network)
-							} else {
-								var keyhash = bitcoinjs.bitcoin.crypto.hash160(key.getPublicKeyBuffer());
-								var scriptsig = bitcoinjs.bitcoin.script.witnessPubKeyHash.output.encode(keyhash);
-								var addressbytes = bitcoinjs.bitcoin.crypto.hash160(scriptsig);
-								var scriptpubkey = bitcoinjs.bitcoin.script.scriptHash.output.encode(addressbytes);
-								address = bitcoinjs.bitcoin.address.fromOutputScript(scriptpubkey, network)
-							}
+							var keyhash = bitcoinjs.bitcoin.crypto.hash160(key.getPublicKeyBuffer());
+							var scriptsig = bitcoinjs.bitcoin.script.witnessPubKeyHash.output.encode(keyhash);
+							var addressbytes = bitcoinjs.bitcoin.crypto.hash160(scriptsig);
+							var scriptpubkey = bitcoinjs.bitcoin.script.scriptHash.output.encode(addressbytes);
+							address = bitcoinjs.bitcoin.address.fromOutputScript(scriptpubkey, network)
 						}
 					}
 
@@ -1043,28 +1025,28 @@
 					}
 
 					if (networks[DOM.network.val()].name == "XMR - Monero") {
-							var rawPrivateKey = keyPair.d.toBuffer(32);
-							var rawSecretSpendKey = ethUtil.sha3(rawPrivateKey);
-							var secretSpendKey = sc_reduce32(rawSecretSpendKey);
-							var secretViewKey = hash_to_scalar(secretSpendKey);
-							var publicSpendKey = secret_key_to_public_key(secretSpendKey);
-							var publicViewKey = secret_key_to_public_key(secretViewKey);
+						var rawPrivateKey = keyPair.d.toBuffer(32);
+						var rawSecretSpendKey = ethUtil.sha3(rawPrivateKey);
+						var secretSpendKey = XMRModule.lib.sc_reduce32(rawSecretSpendKey);
+	                    var secretViewKey = XMRModule.lib.hash_to_scalar(secretSpendKey);
+	                    var publicSpendKey = XMRModule.lib.secret_key_to_public_key(secretSpendKey);
+	                    var publicViewKey = XMRModule.lib.secret_key_to_public_key(secretViewKey);
 
-							DOM.xmrSeedWords.val(secret_spend_key_to_words(secretSpendKey));
+                		DOM.xmrSeedWords.val(XMRModule.lib.secret_spend_key_to_words(secretSpendKey));
 
-							if (index == 0) {
-									publicSpendKey = secret_key_to_public_key(secretSpendKey);
-									publicViewKey = secret_key_to_public_key(secretViewKey);
-							} else {
-									var m = get_subaddress_secret_key(secretViewKey, 0, index);
-									secretSpendKey = sc_add(m, secretSpendKey);
-									publicSpendKey = secret_key_to_public_key(secretSpendKey);
-									publicViewKey = scalarmultKey(publicSpendKey, secretViewKey);
-							}
+						if (index == 0) {
+							publicSpendKey = XMRModule.lib.secret_key_to_public_key(secretSpendKey);
+	                        publicViewKey = XMRModule.lib.secret_key_to_public_key(secretViewKey);
+						} else {
+							var m = XMRModule.lib.get_subaddress_secret_key(secretViewKey, 0, index);
+	                        secretSpendKey = XMRModule.lib.sc_add(m, secretSpendKey);
+	                        publicSpendKey = XMRModule.lib.secret_key_to_public_key(secretSpendKey);
+	                        publicViewKey = XMRModule.lib.scalarmultKey(publicSpendKey, secretViewKey);
+						}
 
-							privkey = uint8ArrayToHex(secretSpendKey);
-							pubkey = "";
-							address = pub_keys_to_address(MONERO_MAINNET, index != 0, publicSpendKey, publicViewKey);
+						privkey = uint8ArrayToHex(secretSpendKey);
+						pubkey = "";
+						address = XMRModule.lib.pub_keys_to_address(XMRModule.lib.MONERO_MAINNET, index != 0, publicSpendKey, publicViewKey);
 					}
 
 					addAddressToList(indexText, address, pubkey, privkey);
@@ -1765,13 +1747,6 @@
             onSelect: function() {
                 network = bitcoinjs.bitcoin.networks.decred;
                 setHdCoin(42);
-            },
-        },
-		{
-            name: "GRS - Groestlcoin",
-            onSelect: function() {
-                network = bitcoinjs.bitcoin.networks.groestlcoin;
-                setHdCoin(17);
             },
         },
 		{
