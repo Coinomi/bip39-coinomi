@@ -8,7 +8,6 @@ Added BIP39 support for:
 - AION
 - Algorand
 - Decred
-- Groestlcoin
 - Monero
 - NEM
 - Smartcash

@@ -1,5 +1,5 @@
 XMRModule = function() {
-var wasm_data = "" + 
+var wasm_data = "" +
 "0061736d01000000019a011760037f7f7f017f60067f7c7f7f7f7f017f60027f7f0060037f7e7f017e60017f017f60017f0060047f7f7f7f0060027f7f017f60047f7f7f7f01"+
 "7f6000006000017f60037f7f7f0060017f017e60017e017e60057f7f7f7f7f017f60077f7f7f7f7f7f7f017f60037e7f7f017f60027e7f017f60057f7f7f7f7f0060017c017e"+
 "60027c7f017c60077f7f7c7f7f7f7f017f60047f7f7e7f017e028c041903656e761261626f7274537461636b4f766572666c6f77000503656e760b6e756c6c46756e635f6969"+
@@ -3487,12 +3487,12 @@ Module.lib.toHexString = toHexString;
 
 sc_reduce32 = function(data) {
     var dataLen = data.length * data.BYTES_PER_ELEMENT;
-    var dataPtr = XMRModule._malloc(dataLen);
-    var dataHeap = new Uint8Array(XMRModule.HEAPU8.buffer, dataPtr, dataLen);
+    var dataPtr = Module._malloc(dataLen);
+    var dataHeap = new Uint8Array(Module.HEAPU8.buffer, dataPtr, dataLen);
     dataHeap.set(data);
-    XMRModule.ccall('sc_reduce32', null, ['number'], [dataHeap.byteOffset]);
+    Module.ccall('sc_reduce32', null, ['number'], [dataHeap.byteOffset]);
     var res = new Uint8Array(dataHeap);
-    XMRModule._free(dataHeap.byteOffset);
+    Module._free(dataHeap.byteOffset);
     return res;
 };
 
@@ -3500,12 +3500,12 @@ Module.lib.sc_reduce32 = sc_reduce32;
 
 secret_key_to_public_key = function(data) {
     var outLen = data.length * data.BYTES_PER_ELEMENT;
-    var outPtr = XMRModule._malloc(outLen);
-    var outHeap = new Uint8Array(XMRModule.HEAPU8.buffer, outPtr, outLen);
-    var ok = XMRModule.ccall('secret_key_to_public_key', 'boolean', ['array', 'number'], [data, outHeap.byteOffset]);
+    var outPtr = Module._malloc(outLen);
+    var outHeap = new Uint8Array(Module.HEAPU8.buffer, outPtr, outLen);
+    var ok = Module.ccall('secret_key_to_public_key', 'boolean', ['array', 'number'], [data, outHeap.byteOffset]);
     var res = null;
     if (ok) res = new Uint8Array(outHeap);
-    XMRModule._free(outHeap.byteOffset);
+    Module._free(outHeap.byteOffset);
     return res;
 };
 
@@ -3513,11 +3513,11 @@ Module.lib.secret_key_to_public_key = secret_key_to_public_key;
 
 cn_fast_hash = function(data) {
     var outLen = 32;
-    var outPtr = XMRModule._malloc(outLen);
-    var outHeap = new Uint8Array(XMRModule.HEAPU8.buffer, outPtr, outLen);
-    XMRModule.ccall('cn_fast_hash', null, ['array', 'number', 'number'], [data, data.length * data.BYTES_PER_ELEMENT, outHeap.byteOffset]);
+    var outPtr = Module._malloc(outLen);
+    var outHeap = new Uint8Array(Module.HEAPU8.buffer, outPtr, outLen);
+    Module.ccall('cn_fast_hash', null, ['array', 'number', 'number'], [data, data.length * data.BYTES_PER_ELEMENT, outHeap.byteOffset]);
     var res = new Uint8Array(outHeap);
-    XMRModule._free(outHeap.byteOffset);
+    Module._free(outHeap.byteOffset);
     return res;
 };
 
@@ -3531,11 +3531,11 @@ Module.lib.hash_to_scalar = hash_to_scalar;
 
 get_subaddress_secret_key = function(data, major, minor) {
     var outLen = 32;
-    var outPtr = XMRModule._malloc(outLen);
-    var outHeap = new Uint8Array(XMRModule.HEAPU8.buffer, outPtr, outLen);
-    XMRModule.ccall('get_subaddress_secret_key', null, ['array', 'number', 'number', 'number'], [data, major, minor, outHeap.byteOffset]);
+    var outPtr = Module._malloc(outLen);
+    var outHeap = new Uint8Array(Module.HEAPU8.buffer, outPtr, outLen);
+    Module.ccall('get_subaddress_secret_key', null, ['array', 'number', 'number', 'number'], [data, major, minor, outHeap.byteOffset]);
     var res = new Uint8Array(outHeap);
-    XMRModule._free(outHeap.byteOffset);
+    Module._free(outHeap.byteOffset);
     return res;
 };
 
@@ -3543,11 +3543,11 @@ Module.lib.get_subaddress_secret_key = get_subaddress_secret_key;
 
 sc_add = function(data1, data2) {
     var outLen = 32;
-    var outPtr = XMRModule._malloc(outLen);
-    var outHeap = new Uint8Array(XMRModule.HEAPU8.buffer, outPtr, outLen);
-    XMRModule.ccall('sc_add', null, ['number', 'array', 'array'], [outHeap.byteOffset, data1, data2]);
+    var outPtr = Module._malloc(outLen);
+    var outHeap = new Uint8Array(Module.HEAPU8.buffer, outPtr, outLen);
+    Module.ccall('sc_add', null, ['number', 'array', 'array'], [outHeap.byteOffset, data1, data2]);
     var res = new Uint8Array(outHeap);
-    XMRModule._free(outHeap.byteOffset);
+    Module._free(outHeap.byteOffset);
     return res;
 };
 
@@ -3555,12 +3555,12 @@ Module.lib.sc_add = sc_add;
 
 scalarmultKey = function(P, a) {
     var outLen = 32;
-    var outPtr = XMRModule._malloc(outLen);
-    var outHeap = new Uint8Array(XMRModule.HEAPU8.buffer, outPtr, outLen);
-    var ok = XMRModule.ccall('scalarmultKey', 'boolean', ['number', 'array', 'array'], [outHeap.byteOffset, P, a]);
+    var outPtr = Module._malloc(outLen);
+    var outHeap = new Uint8Array(Module.HEAPU8.buffer, outPtr, outLen);
+    var ok = Module.ccall('scalarmultKey', 'boolean', ['number', 'array', 'array'], [outHeap.byteOffset, P, a]);
     var res = null;
     if (ok) res = new Uint8Array(outHeap);
-    XMRModule._free(outHeap.byteOffset);
+    Module._free(outHeap.byteOffset);
     return res;
 }
 
@@ -3569,6 +3569,7 @@ Module.lib.scalarmultKey = scalarmultKey;
 function base58_encode(data) {
     var ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
     var ALPHABET_MAP = {}
+	var BYTES_TO_LENGTHS = [0, 2, 3, 5, 6, 7, 9, 10, 11];
     var BASE = ALPHABET.length
 
     // pre-compute lookup table
@@ -3597,7 +3598,7 @@ function base58_encode(data) {
 
         var res = '';
         // deal with leading zeros
-        for (var k = 0; data[pos + k] === 0 && k < len - 1; ++k) res += ALPHABET[0]
+        for (var k = digits.length; k < BYTES_TO_LENGTHS[len]; ++k) res += ALPHABET[0]
         // convert digits to a string
         for (var q = digits.length - 1; q >= 0; --q) res += ALPHABET[digits[q]]
         return res;
@@ -5047,13 +5048,13 @@ function initRuntime() {
   checkStackCookie();
   assert(!runtimeInitialized);
   runtimeInitialized = true;
-  
+
   callRuntimeCallbacks(__ATINIT__);
 }
 
 function preMain() {
   checkStackCookie();
-  
+
   callRuntimeCallbacks(__ATMAIN__);
 }
 
@@ -5524,8 +5525,8 @@ function copyTempDouble(ptr) {
 
   function ___lock() {}
 
-  
-  
+
+
   var PATH={splitPath:function(filename) {
         var splitPathRe = /^(\/?|)([\s\S]*?)((?:\.{1,2}|[^\/]+?|)(\.[^.\/]*|))(?:[\/]*)$/;
         return splitPathRe.exec(filename).slice(1);
@@ -5640,8 +5641,8 @@ function copyTempDouble(ptr) {
 
   function ___unlock() {}
 
-  
-  
+
+
   function flush_NO_FILESYSTEM() {
       // flush anything remaining in the buffers during shutdown
       var fflush = Module["_fflush"];
@@ -5650,7 +5651,7 @@ function copyTempDouble(ptr) {
       if (buffers[1].length) SYSCALLS.printChar(1, 10);
       if (buffers[2].length) SYSCALLS.printChar(2, 10);
     }function _fd_write(stream, iov, iovcnt, pnum) {try {
-  
+
       // hack to support printf in SYSCALLS_REQUIRE_FILESYSTEM=0
       var num = 0;
       for (var i = 0; i < iovcnt; i++) {
@@ -5680,28 +5681,28 @@ function copyTempDouble(ptr) {
       return HEAP8.length;
     }
 
-  
+
   function _emscripten_memcpy_big(dest, src, num) {
       HEAPU8.set(HEAPU8.subarray(src, src+num), dest);
     }
-  
-   
 
-   
 
-  
+
+
+
+
   function ___setErrNo(value) {
       if (Module['___errno_location']) HEAP32[((Module['___errno_location']())>>2)]=value;
       else err('failed to set errno from JS');
       return value;
     }
-  
-  
+
+
   function abortOnCannotGrowMemory(requestedSize) {
       abort('Cannot enlarge memory arrays to size ' + requestedSize + ' bytes (OOM). Either (1) compile with  -s TOTAL_MEMORY=X  with X higher than the current value ' + HEAP8.length + ', (2) compile with  -s ALLOW_MEMORY_GROWTH=1  which allows increasing the size at runtime, or (3) if you want malloc to return NULL (0) instead of this abort, compile with  -s ABORTING_MALLOC=0 ');
     }function _emscripten_resize_heap(requestedSize) {
       abortOnCannotGrowMemory(requestedSize);
-    } 
+    }
 var ASSERTIONS = true;
 
 // Copyright 2017 The Emscripten Authors.  All rights reserved.
