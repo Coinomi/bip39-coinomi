@@ -4,6 +4,14 @@ body {
 .form-control[readonly] {
     cursor: text;
 }
+.logo-container {
+	text-align: center;
+	margin-top: 20px;
+}
+.coinomi-logo {
+	width: 300px;
+	height: auto;
+}
 .feedback-container {
     position: fixed;
     top: 0;
