@@ -892,174 +892,200 @@
             (bip141TabSelected() && DOM.bip141semantics.val() == "p2wpkh-p2sh");
     }
 
-		function TableRow(index, isLast) {
+	function TableRow(index, isLast) {
 
-			var self = this;
-			this.shouldGenerate = true;
-			var useHardenedAddresses = DOM.hardenedAddresses.prop("checked");
-			var useBip38 = DOM.useBip38.prop("checked");
-			var bip38password = DOM.bip38Password.val();
-			var isSegwit = segwitSelected();
-			var segwitAvailable = networkHasSegwit();
-			var isP2wpkh = p2wpkhSelected();
-			var isP2wpkhInP2sh = p2wpkhInP2shSelected();
+		var self = this;
+		this.shouldGenerate = true;
+		var useHardenedAddresses = DOM.hardenedAddresses.prop("checked");
+		var useBip38 = DOM.useBip38.prop("checked");
+		var bip38password = DOM.bip38Password.val();
+		var isSegwit = segwitSelected();
+		var segwitAvailable = networkHasSegwit();
+		var isP2wpkh = p2wpkhSelected();
+		var isP2wpkhInP2sh = p2wpkhInP2shSelected();
 
-			function init() {
-				calculateValues();
-			}
+		function init() {
+			calculateValues();
+		}
 
-			function calculateValues() {
-				setTimeout(function() {
-					if (!self.shouldGenerate) {
+		function calculateValues() {
+			setTimeout(function() {
+				if (!self.shouldGenerate) {
+					return;
+				}
+				// derive HDkey for this row of the table
+				var key = "NA";
+				if (networks[DOM.network.val()].name == "XMR - Monero") {
+						if (useHardenedAddresses) {
+							key = bip32ExtendedKey.deriveHardened(0);
+						}
+						else {
+							key = bip32ExtendedKey.derive(0);
+						}
+				} else {
+						if (useHardenedAddresses) {
+							key = bip32ExtendedKey.deriveHardened(index);
+						}
+						else {
+							key = bip32ExtendedKey.derive(index);
+						}
+				}
+				// bip38 requires uncompressed keys
+				// see https://github.com/iancoleman/bip39/issues/140#issuecomment-352164035
+				var keyPair = key.keyPair;
+				var useUncompressed = useBip38;
+				if (useUncompressed) {
+					if(networks[DOM.network.val()].name == "SMART - SmartCash"){
+						var smartcash = require('smartcashjs-lib');
+						keyPair = new smartcash.ECPair(keyPair.d);
+					} else {
+						keyPair = new bitcoinjs.bitcoin.ECPair(keyPair.d, null, { network: network, compressed: false });
+					}
+				}
+				// get address
+				var address = keyPair.getAddress().toString();
+
+				// get privkey
+				var hasPrivkey = !key.isNeutered();
+				var privkey = "NA";
+				if (hasPrivkey) {
+					privkey = keyPair.toWIF();
+					// BIP38 encode private key if required
+					if (useBip38) {
+						privkey = bitcoinjsBip38.encrypt(keyPair.d.toBuffer(), false, bip38password, function(p) {
+							console.log("Progressed " + p.percent.toFixed(1) + "% for index " + index);
+						});
+					}
+				}
+				// get pubkey
+				var pubkey = keyPair.getPublicKeyBuffer().toString('hex');
+				var indexText = getDerivationPath() + "/" + index;
+				if (useHardenedAddresses) {
+					indexText = indexText + "'";
+				}
+
+
+				// Segwit addresses are different
+				if (isSegwit) {
+					if (!segwitAvailable) {
 						return;
 					}
-					// derive HDkey for this row of the table
-					var key = "NA";
-					if (networks[DOM.network.val()].name == "XMR - Monero") {
-							if (useHardenedAddresses) {
-									key = bip32ExtendedKey.deriveHardened(0);
-							}
-							else {
-									key = bip32ExtendedKey.derive(0);
-							}
+					if (isP2wpkh) {
+						var keyhash = bitcoinjs.bitcoin.crypto.hash160(key.getPublicKeyBuffer());
+						var scriptpubkey = bitcoinjs.bitcoin.script.witnessPubKeyHash.output.encode(keyhash);
+						address = bitcoinjs.bitcoin.address.fromOutputScript(scriptpubkey, network)
+					}
+					else if (isP2wpkhInP2sh) {
+						var keyhash = bitcoinjs.bitcoin.crypto.hash160(key.getPublicKeyBuffer());
+						var scriptsig = bitcoinjs.bitcoin.script.witnessPubKeyHash.output.encode(keyhash);
+						var addressbytes = bitcoinjs.bitcoin.crypto.hash160(scriptsig);
+						var scriptpubkey = bitcoinjs.bitcoin.script.scriptHash.output.encode(addressbytes);
+						address = bitcoinjs.bitcoin.address.fromOutputScript(scriptpubkey, network)
+					}
+				}
+
+				if (networks[DOM.network.val()].name == "TRX - TRON") {
+					var privKeyBuffer = keyPair.d.toBuffer(32);
+					privkey = privKeyBuffer.toString('hex');
+					var addressBuffer = ethUtil.privateToAddress(privKeyBuffer);
+					var hexAddress = addressBuffer.toString('hex');
+
+				    if(hexAddress.slice(0.2) === '41') {
+						address = hexAddress
 					} else {
-							if (useHardenedAddresses) {
-								key = bip32ExtendedKey.deriveHardened(index);
-							}
-							else {
-								key = bip32ExtendedKey.derive(index);
-							}
-					}
-					// bip38 requires uncompressed keys
-					// see https://github.com/iancoleman/bip39/issues/140#issuecomment-352164035
-					var keyPair = key.keyPair;
-					var useUncompressed = useBip38;
-					if (useUncompressed) {
-						if(networks[DOM.network.val()].name == "SMART - SmartCash"){
-							var smartcash = require('smartcashjs-lib');
-							keyPair = new smartcash.ECPair(keyPair.d);
-						} else {
-							keyPair = new bitcoinjs.bitcoin.ECPair(keyPair.d, null, { network: network, compressed: false });
-						}
-					}
-					// get address
-					var address = keyPair.getAddress().toString();
-
-					// get privkey
-					var hasPrivkey = !key.isNeutered();
-					var privkey = "NA";
-					if (hasPrivkey) {
-						privkey = keyPair.toWIF();
-						// BIP38 encode private key if required
-						if (useBip38) {
-							privkey = bitcoinjsBip38.encrypt(keyPair.d.toBuffer(), false, bip38password, function(p) {
-								console.log("Progressed " + p.percent.toFixed(1) + "% for index " + index);
-							});
-						}
-					}
-					// get pubkey
-					var pubkey = keyPair.getPublicKeyBuffer().toString('hex');
-					var indexText = getDerivationPath() + "/" + index;
-					if (useHardenedAddresses) {
-						indexText = indexText + "'";
+						address = '41' + hexAddress
 					}
 
+					var decredjsUtil = require("decredjs-lib");
+					var addressInBuffer = decredjsUtil.util.buffer.hexToBuffer(address);
 
-					// Segwit addresses are different
-					if (isSegwit) {
-						if (!segwitAvailable) {
-							return;
-						}
-						if (isP2wpkh) {
-							var keyhash = bitcoinjs.bitcoin.crypto.hash160(key.getPublicKeyBuffer());
-							var scriptpubkey = bitcoinjs.bitcoin.script.witnessPubKeyHash.output.encode(keyhash);
-							address = bitcoinjs.bitcoin.address.fromOutputScript(scriptpubkey, network)
-						}
-						else if (isP2wpkhInP2sh) {
-							var keyhash = bitcoinjs.bitcoin.crypto.hash160(key.getPublicKeyBuffer());
-							var scriptsig = bitcoinjs.bitcoin.script.witnessPubKeyHash.output.encode(keyhash);
-							var addressbytes = bitcoinjs.bitcoin.crypto.hash160(scriptsig);
-							var scriptpubkey = bitcoinjs.bitcoin.script.scriptHash.output.encode(addressbytes);
-							address = bitcoinjs.bitcoin.address.fromOutputScript(scriptpubkey, network)
-						}
+					console.log(address)
+					console.log(addressInBuffer)
+					console.log(new Int8Array(addressInBuffer))
+
+					console.log(decredjsUtil.deps.bs58.encode(array))
+					console.log(decredjsUtil.encoding.Base58(array))
+					console.log(decredjsUtil.encoding.Base58Check(array))
+					console.log(ethUtil.rlp.encode(array))
+				 	//	console.log(bitcoinjs.bitcoin.address.toBase58Check(array))
+				}
+
+				if (networks[DOM.network.val()].name == "XEM - NEM") {
+					var phrase = DOM.phrase.val();
+					var passphrase = DOM.passphrase.val();
+
+					var nemAccount = nemUtil.account(phrase,passphrase);
+
+					privkey = nemAccount.privKey;
+					pubkey = nemAccount.publicKey;
+					address = nemAccount.address;
+				}
+
+				if (networks[DOM.network.val()].name == "ALGO - Algorand") {
+					var phrase = DOM.phrase.val();
+					var passphrase = DOM.passphrase.val();
+
+					var algoAccount = algorandUtil.account(phrase,passphrase);
+
+					privkey = algoAccount.privKey;
+					pubkey = algoAccount.publicKey;
+					address = algoAccount.address;
+				}
+
+				if (networks[DOM.network.val()].name == "AION - Aion") {
+					var phrase = DOM.phrase.val();
+					var passphrase = DOM.passphrase.val();
+
+					var aionAccount = aionUtil.account(phrase,passphrase);
+
+					privkey = aionAccount.privKey;
+					pubkey = aionAccount.publicKey;
+					address = aionAccount.address;
+				}
+
+				if (networks[DOM.network.val()].name == "DCR - Decred") {
+					var decredjsUtil = require("decredjs-lib");
+
+					info = decredjsUtil.Address._transformPublicKey(key.getPublicKeyBuffer())
+					address = new decredjsUtil.Address(info.hashBuffer, "livenet", info.type).toString();
+				}
+
+				if (networks[DOM.network.val()].name == "XMR - Monero") {
+					var rawPrivateKey = keyPair.d.toBuffer(32);
+					var rawSecretSpendKey = ethUtil.sha3(rawPrivateKey);
+					var secretSpendKey = XMRModule.lib.sc_reduce32(rawSecretSpendKey);
+                    var secretViewKey = XMRModule.lib.hash_to_scalar(secretSpendKey);
+                    var publicSpendKey = XMRModule.lib.secret_key_to_public_key(secretSpendKey);
+                    var publicViewKey = XMRModule.lib.secret_key_to_public_key(secretViewKey);
+
+            		DOM.xmrSeedWords.val(XMRModule.lib.secret_spend_key_to_words(secretSpendKey));
+
+					if (index == 0) {
+						publicSpendKey = XMRModule.lib.secret_key_to_public_key(secretSpendKey);
+                        publicViewKey = XMRModule.lib.secret_key_to_public_key(secretViewKey);
+					} else {
+						var m = XMRModule.lib.get_subaddress_secret_key(secretViewKey, 0, index);
+                        secretSpendKey = XMRModule.lib.sc_add(m, secretSpendKey);
+                        publicSpendKey = XMRModule.lib.secret_key_to_public_key(secretSpendKey);
+                        publicViewKey = XMRModule.lib.scalarmultKey(publicSpendKey, secretViewKey);
 					}
 
-					if (networks[DOM.network.val()].name == "XEM - NEM") {
-						var phrase = DOM.phrase.val();
-						var passphrase = DOM.passphrase.val();
+					privkey = uint8ArrayToHex(secretSpendKey);
+					pubkey = "";
+					address = XMRModule.lib.pub_keys_to_address(XMRModule.lib.MONERO_MAINNET, index != 0, publicSpendKey, publicViewKey);
+				}
 
-						var nemAccount = nemUtil.account(phrase,passphrase);
-
-						privkey = nemAccount.privKey;
-						pubkey = nemAccount.publicKey;
-						address = nemAccount.address;
-					}
-
-					if (networks[DOM.network.val()].name == "ALGO - Algorand") {
-						var phrase = DOM.phrase.val();
-						var passphrase = DOM.passphrase.val();
-
-						var algoAccount = algorandUtil.account(phrase,passphrase);
-
-						privkey = algoAccount.privKey;
-						pubkey = algoAccount.publicKey;
-						address = algoAccount.address;
-					}
-
-					if (networks[DOM.network.val()].name == "AION - Aion") {
-						var phrase = DOM.phrase.val();
-						var passphrase = DOM.passphrase.val();
-
-						var aionAccount = aionUtil.account(phrase,passphrase);
-
-						privkey = aionAccount.privKey;
-						pubkey = aionAccount.publicKey;
-						address = aionAccount.address;
-					}
-
-					if (networks[DOM.network.val()].name == "DCR - Decred") {
-						var decredjsUtil = require("decredjs-lib");
-
-						info = decredjsUtil.Address._transformPublicKey(key.getPublicKeyBuffer())
-						address = new decredjsUtil.Address(info.hashBuffer, "livenet", info.type).toString();
-					}
-
-					if (networks[DOM.network.val()].name == "XMR - Monero") {
-						var rawPrivateKey = keyPair.d.toBuffer(32);
-						var rawSecretSpendKey = ethUtil.sha3(rawPrivateKey);
-						var secretSpendKey = XMRModule.lib.sc_reduce32(rawSecretSpendKey);
-	                    var secretViewKey = XMRModule.lib.hash_to_scalar(secretSpendKey);
-	                    var publicSpendKey = XMRModule.lib.secret_key_to_public_key(secretSpendKey);
-	                    var publicViewKey = XMRModule.lib.secret_key_to_public_key(secretViewKey);
-
-                		DOM.xmrSeedWords.val(XMRModule.lib.secret_spend_key_to_words(secretSpendKey));
-
-						if (index == 0) {
-							publicSpendKey = XMRModule.lib.secret_key_to_public_key(secretSpendKey);
-	                        publicViewKey = XMRModule.lib.secret_key_to_public_key(secretViewKey);
-						} else {
-							var m = XMRModule.lib.get_subaddress_secret_key(secretViewKey, 0, index);
-	                        secretSpendKey = XMRModule.lib.sc_add(m, secretSpendKey);
-	                        publicSpendKey = XMRModule.lib.secret_key_to_public_key(secretSpendKey);
-	                        publicViewKey = XMRModule.lib.scalarmultKey(publicSpendKey, secretViewKey);
-						}
-
-						privkey = uint8ArrayToHex(secretSpendKey);
-						pubkey = "";
-						address = XMRModule.lib.pub_keys_to_address(XMRModule.lib.MONERO_MAINNET, index != 0, publicSpendKey, publicViewKey);
-					}
-
-					addAddressToList(indexText, address, pubkey, privkey);
-					if (isLast) {
-						hidePending();
-						updateCsv();
-					}
-				}, 50)
-			}
-
-			init();
-
+				addAddressToList(indexText, address, pubkey, privkey);
+				if (isLast) {
+					hidePending();
+					updateCsv();
+				}
+			}, 50)
 		}
+
+		init();
+
+	}
 
     function showMore() {
         var rowsToAdd = parseInt(DOM.rowsToAdd.val());
@@ -1754,6 +1780,13 @@
             onSelect: function() {
                 network = smartCashNetworkInfo;
                 setHdCoin(224);
+            },
+        },
+		{
+            name: "TRX - TRON",
+            onSelect: function() {
+                network = bitcoinjs.bitcoin.networks.bitcoin;
+                setHdCoin(195);
             },
         },
 		{
