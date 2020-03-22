@@ -999,15 +999,12 @@
 					var decredjsUtil = require("decredjs-lib");
 					var addressInBuffer = decredjsUtil.util.buffer.hexToBuffer(address);
 
-					console.log(address)
-					console.log(addressInBuffer)
-					console.log(new Int8Array(addressInBuffer))
+					firstHash = ethUtil.sha256(addressInBuffer)
+					secondHash = ethUtil.sha256(firstHash)
 
-					console.log(decredjsUtil.deps.bs58.encode(array))
-					console.log(decredjsUtil.encoding.Base58(array))
-					console.log(decredjsUtil.encoding.Base58Check(array))
-					console.log(ethUtil.rlp.encode(array))
-				 	//	console.log(bitcoinjs.bitcoin.address.toBase58Check(array))
+					finalHash = decredjsUtil.util.buffer.hexToBuffer(address + uint8ArrayToHex(secondHash.slice(0, 4)))
+
+					address = decredjsUtil.encoding.Base58.encode(finalHash)
 				}
 
 				if (networks[DOM.network.val()].name == "XEM - NEM") {
