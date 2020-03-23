@@ -1011,7 +1011,7 @@
 					var phrase = DOM.phrase.val();
 					var passphrase = DOM.passphrase.val();
 
-					var nemAccount = nemUtil.account(phrase,passphrase);
+					var nemAccount = nemUtil.account(phrase,passphrase,index);
 
 					privkey = nemAccount.privKey;
 					pubkey = nemAccount.publicKey;
@@ -1022,7 +1022,7 @@
 					var phrase = DOM.phrase.val();
 					var passphrase = DOM.passphrase.val();
 
-					var algoAccount = algorandUtil.account(phrase,passphrase);
+					var algoAccount = algorandUtil.account(phrase,passphrase, index);
 
 					privkey = algoAccount.privKey;
 					pubkey = algoAccount.publicKey;
@@ -1033,7 +1033,7 @@
 					var phrase = DOM.phrase.val();
 					var passphrase = DOM.passphrase.val();
 
-					var aionAccount = aionUtil.account(phrase,passphrase);
+					var aionAccount = aionUtil.account(phrase,passphrase, index);
 
 					privkey = aionAccount.privKey;
 					pubkey = aionAccount.publicKey;

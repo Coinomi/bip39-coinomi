@@ -114058,16 +114058,12 @@ var bip39 = require("bip39");
 var HDNode = require("./util/hdnode");
 var nem = require("nem-sdk").default;
 
-var counter = 0;
-
 window.nemUtil = {
-	account: function account(mnemonic, passphrase) {
+	account: function account(mnemonic, passphrase,accountIndex) {
 		var seed = bip39.mnemonicToSeed(mnemonic, passphrase);
 		var root = HDNode.fromSeedBuffer(seed);
-		
-		var accountNumberInPath = counter.toString();
-		counter++;
-		var nemCustomPath = "m/44'/43'/" + accountNumberInPath + "'/0'/0'";
+
+		var nemCustomPath = "m/44'/43'/" + accountIndex.toString() + "'/0'/0'";
 		var node = root.derivePath(nemCustomPath); /* Check this hard coded path */
 
 		var secretKey = nem.utils.convert.hex2ua_reversed(node.getPrivateKeyHex());

@@ -41939,7 +41939,6 @@ naclFactory.instantiate(function (nacl) {
 var replaceDerive = function replaceDerive(val) {
     return val.replace("'", '');
 };
-var counter = 0;
 
 var getMasterKeyFromSeed = function getMasterKeyFromSeed(seed) {
     var hmac = createHmac('sha512', ED25519_CURVE);
@@ -42002,13 +42001,11 @@ function encode(address) {
 }
 
 window.algorandUtil = {
-    account: function account(mnemonic, passphrase) {
+    account: function account(mnemonic, passphrase, accountIndex) {
 
         var seed = bip39.mnemonicToSeed(mnemonic, passphrase);
 
-        var accountNumberInPath = counter.toString();
-        counter++;
-        var algoPath = "m/44'/283'/" + accountNumberInPath + "'/0'/0'";
+        var algoPath = "m/44'/283'/" + accountIndex.toString() + "'/0'/0'";
 
         var childKeys = derivePath(algoPath, seed);
 
