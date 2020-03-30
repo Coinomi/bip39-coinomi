@@ -11,6 +11,7 @@ Added BIP39 support for:
 - Monero
 - NEM
 - Smartcash
+- Tron
 
 
 
@@ -22,6 +23,11 @@ Download `bip39-standalone.html` from
 Open the file in a browser by double clicking it.
 
 This can be compiled from source using the command `python compile.py`
+
+## Security Measures
+As the first step of usage: Make sure your device is completely offline and cannot connect to the internet in any say.
+
+As the last: Before connecting the device to the internet close the browser window and overwrite/wipe the clipboard of any keys or seeds you may have copied. 
 
 ## Usage
 
