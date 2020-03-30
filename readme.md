@@ -41,4 +41,4 @@ See the table for a list of addresses generated from the phrase.
 Toggle columns to blank to easily copy/paste a single column of data, eg to
 import private keys into a wallet or supply someone with a list of addresses.
 
-The BIP32 keys can be used at [bip32.org](https://bip32.org) if desired.
+Read more [here:](https://coinomi.freshdesk.com/support/solutions/articles/29000009717)
